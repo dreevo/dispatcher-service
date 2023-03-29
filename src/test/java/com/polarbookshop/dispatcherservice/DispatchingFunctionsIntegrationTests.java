@@ -9,6 +9,8 @@ import reactor.test.StepVerifier;
 
 import java.util.function.Function;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 @FunctionalSpringBootTest
 public class DispatchingFunctionsIntegrationTests {
 
@@ -17,14 +19,21 @@ public class DispatchingFunctionsIntegrationTests {
 
 
     @Test
-    void packAndLabelOrder() {
-        Function<OrderAcceptedMessage, Flux<OrderDispatchedMessage>>
-                packAndLabel = catalog.lookup(
-                Function.class,
-                "pack|label");
+    void packOrder() {
+        Function<OrderAcceptedMessage, Long> pack = catalog.lookup(Function.class, "pack");
         long orderId = 121;
-        StepVerifier.create(packAndLabel.apply(new OrderAcceptedMessage(orderId)))
-        .expectNextMatches(dispatchedOrder -> dispatchedOrder.equals(new OrderDispatchedMessage(orderId)))
-        .verifyComplete();
+        assertThat(pack.apply(new OrderAcceptedMessage(orderId))).isEqualTo(orderId);
     }
+
+    @Test
+    void labelOrder() {
+        Function<Flux<Long>, Flux<OrderDispatchedMessage>> label = catalog.lookup(Function.class, "label");
+        Flux<Long> orderId = Flux.just(121L);
+
+        StepVerifier.create(label.apply(orderId))
+                .expectNextMatches(dispatchedOrder ->
+                        dispatchedOrder.equals(new OrderDispatchedMessage(121L)))
+                .verifyComplete();
+    }
+
 }
