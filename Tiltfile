@@ -1,7 +1,7 @@
 # Build
 custom_build(
      # Name of the container image
-     ref = 'catalog-service',
+     ref = 'dispatcher-service',
      tag = 'latest',
      # Command to build the container image
      command = '.\\gradlew.bat bootBuildImage --imageName dispatcher-service:latest',
